@@ -438,10 +438,10 @@ app.post('/api/ai/chat', (req, res) => {
     answer = `⚽ **Spatial Vision AI Stream**: MetLife Stadium Cam #4 tracking ball position at **Sector North 18-yard box**. Attacking momentum favors **USA (64% possession in last 5 mins)**.`;
   }
 
-  setCachedResponse(cacheKey, answer);
-  res.json({ text: answer, cached: false, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`⚡ StadiumPulse Real-Time AI & Token Backend listening on http://localhost:${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`⚡ StadiumPulse Real-Time AI & Token Backend listening on http://localhost:${PORT}`);
-});
+export default app;
