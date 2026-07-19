@@ -9,13 +9,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Security Headers Middleware
+// In-Memory Rate Limiting Middleware (120 requests/minute per IP)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60000;
+const RATE_LIMIT_MAX = 120;
+
 app.use((req, res, next) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const clientRecord = rateLimitMap.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW_MS };
+
+  if (now > clientRecord.resetTime) {
+    clientRecord.count = 1;
+    clientRecord.resetTime = now + RATE_LIMIT_WINDOW_MS;
+  } else {
+    clientRecord.count += 1;
+  }
+
+  rateLimitMap.set(ip, clientRecord);
+
+  if (clientRecord.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({ success: false, message: 'Too Many Requests - Rate Limit Exceeded. Try again in 60 seconds.' });
+  }
+
+  res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, RATE_LIMIT_MAX - clientRecord.count));
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(self)');
   next();
 });
 

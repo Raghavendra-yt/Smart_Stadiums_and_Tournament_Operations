@@ -231,10 +231,12 @@ export function StaffView() {
             </h2>
             <div className="flex-grow flex flex-col gap-4">
               <div className="bg-surface p-3 rounded-lg border border-outline-variant">
-                <label className="font-caption text-caption text-on-surface-variant block mb-1">
+                <label htmlFor="speech-input" className="font-caption text-caption text-on-surface-variant block mb-1">
                   Detecting Language or Radio Speech...
                 </label>
                 <textarea
+                  id="speech-input"
+                  aria-label="Detecting Language or Radio Speech Input"
                   className="w-full bg-transparent border-none text-on-surface font-body-md text-body-md focus:ring-0 resize-none p-0"
                   placeholder="Tap mic or type report..."
                   rows="2"
@@ -249,6 +251,7 @@ export function StaffView() {
                     isMicRecording ? 'bg-error animate-pulse' : 'bg-surface-container-highest hover:bg-primary-fixed-dim hover:text-on-primary'
                   }`}
                   onClick={handleMicClick}
+                  aria-label="Simulate Recording Voice"
                   title="Record Voice"
                 >
                   <span className="material-symbols-outlined">mic</span>
@@ -256,17 +259,18 @@ export function StaffView() {
                 <button
                   className="bg-primary-fixed-dim text-on-primary-fixed px-3 py-2 rounded-lg font-label-bold text-xs hover:neon-glow flex items-center gap-1"
                   onClick={handleDispatchReport}
+                  aria-label="Dispatch Voice Radio Report"
                 >
                   <span className="material-symbols-outlined text-sm">cell_tower</span> Dispatch Radio Report
                 </button>
               </div>
 
               <div className="bg-surface-dim p-3 rounded-lg border border-outline-variant/50 relative">
-                <label className="font-caption text-caption text-on-surface-variant block mb-1">
+                <label htmlFor="translated-output" className="font-caption text-caption text-on-surface-variant block mb-1">
                   English (Auto-translated / Logged)
                 </label>
-                <p className="text-on-surface font-body-md text-body-md min-h-[3rem]">{translatedText}</p>
-                <button className="absolute top-2 right-2 text-on-surface-variant hover:text-primary-fixed-dim">
+                <p id="translated-output" className="text-on-surface font-body-md text-body-md min-h-[3rem]">{translatedText}</p>
+                <button aria-label="Text to speech output" className="absolute top-2 right-2 text-on-surface-variant hover:text-primary-fixed-dim">
                   <span className="material-symbols-outlined text-sm">volume_up</span>
                 </button>
               </div>
@@ -290,7 +294,10 @@ export function StaffView() {
                   <span className="material-symbols-outlined text-secondary-fixed-dim">route</span> Fan Pathfinding AI
                 </h2>
                 <div className="flex gap-2">
+                  <label htmlFor="destination-input" className="sr-only">Destination</label>
                   <input
+                    id="destination-input"
+                    aria-label="Destination Block or Gate"
                     className="bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-md text-body-md focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim w-64"
                     placeholder="Destination (e.g., Block 102)"
                     type="text"
@@ -298,6 +305,7 @@ export function StaffView() {
                     onChange={(e) => setDestinationInput(e.target.value)}
                   />
                   <button
+                    aria-label="Calculate Pathfinding Route"
                     className="bg-primary-fixed-dim text-on-primary px-4 py-2 rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors"
                     onClick={() => alert(`Routing fan to ${destinationInput || 'Block 102'}`)}
                   >

@@ -6,7 +6,7 @@ export const Navbar = () => {
   const currentUser = currentRole !== 'fan' ? authenticatedRoles[currentRole] : null;
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-4 bg-surface-dim backdrop-blur-xl border-b border-outline-variant/20 shadow-sm transition-all duration-300" id="main-nav">
+    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-4 bg-surface-dim backdrop-blur-xl border-b border-outline-variant/20 shadow-sm transition-all duration-300" id="main-nav" role="navigation" aria-label="Primary Navigation">
       <div className="flex items-center gap-6">
         <span className="font-display-xl text-headline-md font-extrabold text-primary-fixed-dim tracking-tighter">
           World Cup 2026 GenAI
