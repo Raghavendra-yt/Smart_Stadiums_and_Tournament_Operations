@@ -27,7 +27,7 @@ export function LoginPage({ targetRole }) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim(), role: targetRole })
@@ -56,7 +56,7 @@ export function LoginPage({ targetRole }) {
     const demoPass = roleToLogin === 'ops' ? 'ops2026' : 'staff2026';
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: demoEmail, password: demoPass, role: roleToLogin })

@@ -1,7 +1,6 @@
 # 🏟️ World Cup 2026 Smart Stadiums & Tournament Operations Platform
 
 [![FIFA World Cup 2026](https://img.shields.io/badge/FIFA%20World%20Cup-2026%20MetLife%20Stadium-gold?style=for-the-badge&logo=soccer)](https://github.com/Raghavendra-yt/Smart_Stadiums_and_Tournament_Operations)
-[![Evaluation Score](https://img.shields.io/badge/Jury%20Score-100%2F100%20Grand%20Prize-brightgreen?style=for-the-badge)](file:///C:/Users/mragh/.gemini/antigravity-ide/brain/e5ed98b4-3a7e-4bc6-87d4-5af74a7cf465/evaluation_report.md)
 [![Tech Stack](https://img.shields.io/badge/Tech-React_18_%7C_Vite_%7C_Tailwind_%7C_Node_Express-blue?style=for-the-badge)](https://github.com/Raghavendra-yt/Smart_Stadiums_and_Tournament_Operations)
 
 An end-to-end multi-persona smart stadium intelligence ecosystem engineered for **MetLife Stadium (Host Venue for FIFA World Cup 2026™)**. 
@@ -91,20 +90,6 @@ npm run dev
 ```
 
 Open your browser at `http://localhost:5173` to access the application.
-
----
-
-## 🏆 Hackathon Jury Evaluation Scorecard
-
-| Evaluation Parameter | Score | Key Performance Highlights |
-| :--- | :---: | :--- |
-| **1. Testing & Simulation Accuracy** | **100 / 100** | 100% deterministic vehicle violation state toggles & 0-error Carbon formula ($E_{\text{total}}$) edge-case precision. |
-| **2. Accessibility (a11y) Compliance** | **100 / 100** | WCAG 2.1 AAA contrast (11.2:1 ratio), High-Contrast canvas, and ARIA `role="status"` `aria-live="polite"` regions. |
-| **3. Security & Privacy** | **100 / 100** | Zero local payment token storage, Bearer Authorization Header Middleware, and `maxLength={250}` prompt capping. |
-| **4. Availability & Performance Under Surge** | **100 / 100** | High-Concurrency LRU Cache served 30 requests in 83ms (**2.77ms/req average latency, 0% error rate**). |
-| **5. Code Quality & Architectural Integrity**| **100 / 100** | Real-Time Server-Sent Events (SSE) stream (`/api/telemetry/stream`), modular SPA architecture, and persistent DB REST endpoints. |
-
-**OVERALL SCORE: 100 / 100 (1ST PLACE GRAND PRIZE WINNER)**
 
 ---
 
