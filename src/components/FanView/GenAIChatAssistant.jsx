@@ -1,27 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStadium } from '../../context/StadiumContext';
-import { 
-  Bot, 
-  Send, 
-  Sparkles, 
-  User, 
-  Volume2, 
-  Zap, 
-  ShoppingBag, 
-  Navigation
-} from 'lucide-react';
+import { Bot, Send, Sparkles, User, Volume2, Zap, ShoppingBag, Navigation } from 'lucide-react';
 
 export const GenAIChatAssistant = () => {
-  const { 
-    chatMessages, 
-    sendChatMessage, 
-    isAiTyping, 
-    speakText, 
+  const {
+    chatMessages,
+    sendChatMessage,
+    isAiTyping,
+    speakText,
     setSelectedMapTarget,
     setActiveOrderModal,
     concessions
   } = useStadium();
-  
+
   const [inputVal, setInputVal] = useState('');
   const chatEndRef = useRef(null);
 
@@ -42,7 +33,7 @@ export const GenAIChatAssistant = () => {
 
   return (
     <div className="glass-panel flex flex-col h-[580px] border border-emerald-500/20 shadow-2xl relative overflow-hidden">
-      
+
       {/* Header */}
       <div className="p-4 border-b border-white/10 bg-slate-900/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -93,11 +84,10 @@ export const GenAIChatAssistant = () => {
             </div>
 
             <div
-              className={`p-3.5 rounded-2xl max-w-[88%] text-sm leading-relaxed ${
-                msg.sender === 'user'
+              className={`p-3.5 rounded-2xl max-w-[88%] text-sm leading-relaxed ${msg.sender === 'user'
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-tr-none shadow-md'
                   : 'bg-slate-900/90 border border-white/10 text-slate-200 rounded-tl-none shadow-lg'
-              }`}
+                }`}
             >
               <div className="whitespace-pre-wrap">{msg.text}</div>
 

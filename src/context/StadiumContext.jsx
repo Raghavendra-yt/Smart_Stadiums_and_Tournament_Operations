@@ -1,33 +1,67 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  MATCH_INFO, 
-  GATES_DATA, 
-  CONCESSIONS_DATA, 
-  ACTIVE_INCIDENTS, 
-  TRANSIT_HUBS, 
-  VOLUNTEER_TASKS,
-  GENAI_PRESET_RESPONSES
-} from '../data/stadiumData';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const StadiumContext = createContext();
 
 export const StadiumProvider = ({ children }) => {
   const [currentRole, setCurrentRole] = useState('fan'); // 'fan' | 'ops' | 'volunteer'
+  const [authenticatedRoles, setAuthenticatedRoles] = useState({
+    ops: null,
+    volunteer: null
+  });
+
+  const [authTokens, setAuthTokens] = useState({
+    ops: null,
+    volunteer: null
+  });
+
+  const loginRole = (role, userData, token) => {
+    const bearerToken = token || `demo-token-${role}-${Date.now()}`;
+    setAuthenticatedRoles((prev) => ({
+      ...prev,
+      [role]: userData || { name: role === 'ops' ? 'J. Smith' : 'Vol. Alex Rivera', title: role === 'ops' ? 'Senior Controller' : 'Gate 4 Specialist' }
+    }));
+    setAuthTokens((prev) => ({
+      ...prev,
+      [role]: bearerToken
+    }));
+  };
+
+  const logoutRole = (role) => {
+    setAuthenticatedRoles((prev) => ({
+      ...prev,
+      [role]: null
+    }));
+    setAuthTokens((prev) => ({
+      ...prev,
+      [role]: null
+    }));
+  };
+
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [matchInfo, setMatchInfo] = useState(MATCH_INFO);
-  const [gates, setGates] = useState(GATES_DATA);
-  const [concessions, setConcessions] = useState(CONCESSIONS_DATA);
-  const [incidents, setIncidents] = useState(ACTIVE_INCIDENTS);
-  const [tasks, setTasks] = useState(VOLUNTEER_TASKS);
-  const [transitHubs, setTransitHubs] = useState(TRANSIT_HUBS);
+  const [matchInfo, setMatchInfo] = useState({
+    id: "FWC2026-M48",
+    tournament: "FIFA World Cup 2026™",
+    venue: "MetLife Stadium - New York / New Jersey",
+    homeTeam: { name: "USA", flag: "🇺🇸", score: 2 },
+    awayTeam: { name: "BRAZIL", flag: "🇧🇷", score: 1 },
+    matchTime: "72'",
+    status: "LIVE - 2ND HALF",
+    attendance: 81940
+  });
+
+  const [gates, setGates] = useState([]);
+  const [concessions, setConcessions] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [transitHubs, setTransitHubs] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(true);
 
   // Map & Wayfinding State
-  const [selectedMapTarget, setSelectedMapTarget] = useState(null); // { name, type, sector, status }
-
-  // Concession Modal State
+  const [selectedMapTarget, setSelectedMapTarget] = useState(null);
   const [activeOrderModal, setActiveOrderModal] = useState(null);
-  const [recentOrders, setRecentOrders] = useState([]);
 
   // GenAI Chat State
   const [chatMessages, setChatMessages] = useState([
@@ -46,16 +80,51 @@ export const StadiumProvider = ({ children }) => {
   ]);
   const [isAiTyping, setIsAiTyping] = useState(false);
 
+  // Fetch Initial Telemetry
+  const fetchTelemetryFromDB = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/telemetry`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.matchInfo) setMatchInfo(data.matchInfo);
+        if (data.gates) setGates(data.gates);
+        if (data.concessions) setConcessions(data.concessions);
+        if (data.incidents) setIncidents(data.incidents);
+        if (data.transitHubs) setTransitHubs(data.transitHubs);
+        if (data.volunteerTasks) setTasks(data.volunteerTasks);
+        if (data.orders) setRecentOrders(data.orders);
+      }
+    } catch (err) {
+      console.warn('Backend API disconnected, retrying...', err);
+    }
+  };
+
+  // Real-Time Server-Sent Events (SSE) Push Subscription
+  useEffect(() => {
+    fetchTelemetryFromDB();
+
+    const eventSource = new EventSource(`${API_BASE_URL}/telemetry/stream`);
+
+    eventSource.addEventListener('INCIDENT_CREATED', () => fetchTelemetryFromDB());
+    eventSource.addEventListener('INCIDENT_RESOLVED', () => fetchTelemetryFromDB());
+    eventSource.addEventListener('TASK_DISPATCHED', () => fetchTelemetryFromDB());
+    eventSource.addEventListener('TASK_UPDATED', () => fetchTelemetryFromDB());
+    eventSource.addEventListener('ORDER_PLACED', () => fetchTelemetryFromDB());
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   // Speech Synthesizer Helper
   const speakText = (text) => {
     if (!isSpeechEnabled || !('speechSynthesis' in window)) return;
     try {
-      window.speechSynthesis.cancel(); // Stop ongoing speech
-      const cleanText = text.replace(/[*#_]/g, ''); // strip markdown
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/[*#_]/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
-      // match language if possible
       if (selectedLanguage === 'es') utterance.lang = 'es-ES';
       else if (selectedLanguage === 'pt') utterance.lang = 'pt-BR';
       else if (selectedLanguage === 'fr') utterance.lang = 'fr-FR';
@@ -67,8 +136,8 @@ export const StadiumProvider = ({ children }) => {
     }
   };
 
-  // Add user query to chat and trigger simulated GenAI response stream
-  const sendChatMessage = (userInput) => {
+  // Add user query to chat and call Express backend AI Endpoint
+  const sendChatMessage = async (userInput) => {
     if (!userInput.trim()) return;
 
     const userMsg = {
@@ -81,96 +150,107 @@ export const StadiumProvider = ({ children }) => {
     setChatMessages((prev) => [...prev, userMsg]);
     setIsAiTyping(true);
 
-    // Simulate AI thinking and generator logic
-    setTimeout(() => {
-      let responseText = GENAI_PRESET_RESPONSES.default;
-      const lower = userInput.toLowerCase();
-
-      if (lower.includes('food') || lower.includes('taco') || lower.includes('burger') || lower.includes('eat') || lower.includes('hungry')) {
-        responseText = GENAI_PRESET_RESPONSES.food;
-      } else if (lower.includes('train') || lower.includes('transit') || lower.includes('bus') || lower.includes('rideshare') || lower.includes('wheelchair')) {
-        responseText = GENAI_PRESET_RESPONSES.transit;
-      } else if (lower.includes('gate') || lower.includes('crowd') || lower.includes('line') || lower.includes('bottleneck') || lower.includes('entry')) {
-        responseText = GENAI_PRESET_RESPONSES.gate;
-      } else if (lower.includes('translate') || lower.includes('spanish') || lower.includes('portuguese') || lower.includes('french') || lower.includes('language')) {
-        responseText = GENAI_PRESET_RESPONSES.translate;
-      } else if (lower.includes('eco') || lower.includes('sustainability') || lower.includes('waste') || lower.includes('green') || lower.includes('power')) {
-        responseText = GENAI_PRESET_RESPONSES.sustainability;
-      } else {
-        responseText = `🤖 **GenAI Intelligence**: I analyzed your request ("${userInput}") against active stadium telemetry. Current match phase is **${matchInfo.matchTime}**. Gates A & D offer optimal traffic flow, and Section 112 Express Concession is ready for pickup. Direct support dispatched if required!`;
+    try {
+      const res = await fetch(`${API_BASE_URL}/ai/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userInput })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const aiMsg = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          role: 'StadiumPulse AI',
+          text: data.text,
+          timestamp: data.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setChatMessages((prev) => [...prev, aiMsg]);
+        speakText(data.text);
       }
-
-      const aiMsg = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        role: 'StadiumPulse AI',
-        text: responseText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setChatMessages((prev) => [...prev, aiMsg]);
+    } catch (e) {
+      console.error('Failed to get AI chat response from backend:', e);
+    } finally {
       setIsAiTyping(false);
-      speakText(responseText);
-    }, 1100);
+    }
   };
 
-  // Ops Incident Resolution handler
-  const resolveIncident = (incidentId) => {
-    setIncidents((prev) => 
-      prev.map((inc) => 
-        inc.id === incidentId 
-          ? { ...inc, status: 'Resolved - Cleared', severity: 'RESOLVED' } 
-          : inc
-      )
-    );
-    // Also update gate congestion if it was gate B
-    setGates((prev) => 
-      prev.map((g) => g.id.includes('Gate B') ? { ...g, waitMin: 5, status: 'Optimal', color: '#10b981', crowdDensity: 32 } : g)
-    );
+  // Ops Incident Resolution handler via Bearer Token Authenticated Endpoint
+  const resolveIncident = async (incidentId) => {
+    const token = authTokens[currentRole] || `demo-token-${currentRole}`;
+    try {
+      const res = await fetch(`${API_BASE_URL}/incidents/${incidentId}/resolve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.incidents) setIncidents(data.incidents);
+        if (data.gates) setGates(data.gates);
+      }
+    } catch (err) {
+      console.error('Failed to resolve incident on backend:', err);
+    }
   };
 
-  // Volunteer Task Status toggle
-  const updateTaskStatus = (taskId, newStatus) => {
-    setTasks((prev) => 
-      prev.map((tsk) => tsk.id === taskId ? { ...tsk, status: newStatus } : tsk)
-    );
+  // Volunteer Task Status toggle via Bearer Token Authenticated Endpoint
+  const updateTaskStatus = async (taskId, newStatus) => {
+    const token = authTokens[currentRole] || `demo-token-${currentRole}`;
+    try {
+      const res = await fetch(`${API_BASE_URL}/volunteer-tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tasks) setTasks(data.tasks);
+      }
+    } catch (err) {
+      console.error('Failed to update task status on backend:', err);
+    }
   };
 
-  // Place smart food order
-  const placeConcessionOrder = (item, quantity = 1) => {
-    const newOrder = {
-      orderId: "FWC-ORD-" + Math.floor(1000 + Math.random() * 9000),
-      item: item.popularItem,
-      stand: item.name,
-      location: item.location,
-      pickupTime: "In 4 minutes",
-      expressCode: "EX-" + Math.floor(10 + Math.random() * 89),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    setRecentOrders((prev) => [newOrder, ...prev]);
-    setActiveOrderModal(null);
-  };
-
-  // Live telemetry pulse simulation effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setGates((prevGates) => 
-        prevGates.map((gate) => {
-          if (gate.status === 'Congested') return gate; // leave high status for demo
-          const MathVariance = Math.floor((Math.random() - 0.5) * 4);
-          const newDensity = Math.max(10, Math.min(95, gate.crowdDensity + MathVariance));
-          return { ...gate, crowdDensity: newDensity };
+  // Place smart food order via Backend API
+  const placeConcessionOrder = async (item) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: item.popularItem,
+          stand: item.name,
+          location: item.location,
+          pickupTime: "In 4 minutes",
+          expressCode: "EX-" + Math.floor(10 + Math.random() * 89)
         })
-      );
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) setRecentOrders((prev) => [data.order, ...prev]);
+      }
+    } catch (err) {
+      console.error('Failed to place order on backend:', err);
+    } finally {
+      setActiveOrderModal(null);
+    }
+  };
 
   return (
     <StadiumContext.Provider
       value={{
         currentRole,
         setCurrentRole,
+        authenticatedRoles,
+        authTokens,
+        loginRole,
+        logoutRole,
         selectedLanguage,
         setSelectedLanguage,
         matchInfo,
