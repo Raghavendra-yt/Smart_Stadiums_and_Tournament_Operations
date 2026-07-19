@@ -7,7 +7,11 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, 'database.json');
+
+const isVercel = Boolean(process.env.VERCEL || process.env.NODE_ENV === 'production');
+const DB_FILE = isVercel
+  ? path.join('/tmp', 'database.json')
+  : path.join(__dirname, 'database.json');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -220,20 +224,32 @@ const INITIAL_DATABASE = {
 // Database Read/Write Helpers
 function readDatabase() {
   if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DATABASE, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DATABASE, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('Could not write database file in readDatabase:', err);
+    }
     return INITIAL_DATABASE;
   }
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
     return JSON.parse(raw);
   } catch (err) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DATABASE, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DATABASE, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('Could not reset database file:', e);
+    }
     return INITIAL_DATABASE;
   }
 }
 
 function writeDatabase(db) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Could not write database in writeDatabase:', err);
+  }
 }
 
 // Bearer Token Authorization Middleware
