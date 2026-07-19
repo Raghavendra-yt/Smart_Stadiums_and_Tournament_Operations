@@ -5,6 +5,7 @@ import { FanView } from './components/FanView/FanView';
 import { OpsView } from './components/OpsView/OpsView';
 import { StaffView } from './components/StaffView/StaffView';
 import { LoginPage } from './components/Auth/LoginPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const MainContent = () => {
   const { currentRole, authenticatedRoles } = useStadium();
@@ -30,8 +31,10 @@ const MainContent = () => {
 
 export default function App() {
   return (
-    <StadiumProvider>
-      <MainContent />
-    </StadiumProvider>
+    <ErrorBoundary>
+      <StadiumProvider>
+        <MainContent />
+      </StadiumProvider>
+    </ErrorBoundary>
   );
 }

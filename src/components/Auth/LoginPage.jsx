@@ -113,13 +113,15 @@ export function LoginPage({ targetRole }) {
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-label-bold text-on-surface-variant mb-1.5 uppercase">
+                <label htmlFor="login-email-input" className="block text-xs font-label-bold text-on-surface-variant mb-1.5 uppercase">
                   User ID / Official Email
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-3 text-on-surface-variant text-sm">mail</span>
                   <input
+                    id="login-email-input"
                     type="text"
+                    aria-label="User ID or Official Email"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2.5 pl-10 pr-4 text-sm text-on-surface focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim outline-none transition-all"
                     placeholder={`e.g., ${defaultDemoEmail}`}
                     value={email}
@@ -129,13 +131,15 @@ export function LoginPage({ targetRole }) {
               </div>
 
               <div>
-                <label className="block text-xs font-label-bold text-on-surface-variant mb-1.5 uppercase">
+                <label htmlFor="login-password-input" className="block text-xs font-label-bold text-on-surface-variant mb-1.5 uppercase">
                   Passcode / Token
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-3 text-on-surface-variant text-sm">lock</span>
                   <input
+                    id="login-password-input"
                     type="password"
+                    aria-label="Passcode or Security Token"
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2.5 pl-10 pr-4 text-sm text-on-surface focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim outline-none transition-all"
                     placeholder="Enter password..."
                     value={password}

@@ -14,6 +14,7 @@ export const Navbar = () => {
         <div className="hidden md:flex gap-2 font-body-md text-sm">
           <button
             onClick={() => setCurrentRole('fan')}
+            aria-label="Navigate to Fans Hub Portal"
             className={`px-4 py-1.5 rounded-lg transition-all duration-300 font-bold text-sm ${
               currentRole === 'fan'
                 ? 'text-primary-fixed-dim border-b-2 border-primary-fixed-dim bg-surface-container-high shadow-sm'
@@ -24,6 +25,7 @@ export const Navbar = () => {
           </button>
           <button
             onClick={() => setCurrentRole('ops')}
+            aria-label="Navigate to Organizers Operations Command Portal"
             className={`px-4 py-1.5 rounded-lg transition-all duration-300 font-bold text-sm ${
               currentRole === 'ops'
                 ? 'text-primary-fixed-dim border-b-2 border-primary-fixed-dim bg-surface-container-high shadow-sm'
@@ -34,6 +36,7 @@ export const Navbar = () => {
           </button>
           <button
             onClick={() => setCurrentRole('volunteer')}
+            aria-label="Navigate to Volunteer Support Hub Portal"
             className={`px-4 py-1.5 rounded-lg transition-all duration-300 font-bold text-sm ${
               currentRole === 'volunteer'
                 ? 'text-primary-fixed-dim border-b-2 border-primary-fixed-dim bg-surface-container-high shadow-sm'
